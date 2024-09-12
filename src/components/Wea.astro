@@ -1,0 +1,63 @@
+---
+    import axios from 'axios';
+    const lat = import.meta.env.LAT;
+    const lon = import.meta.env.LON;
+
+    const fetchWeatherData = async () =>{
+      let loading = true;  // Inicializar loading como true
+      let currentTemp = null; // Inicializar currentTemp como null
+      
+      // Simular un retraso de 10 segundos antes de hacer la solicitud
+      // await new Promise(resolve => setTimeout(resolve, 10000));
+
+      // Configuración de la solicitud a la API de Open Meteo
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=-38.1381&longitude=-61.7952&hourly=temperature_2m&forecast_days=1`;
+      
+      try {
+        // Realizar la solicitud HTTP utilizando Axios
+        const response = await axios.get(url);
+        console.log("SOY RESPONSE", response);
+        // Manejar la respuesta y retornar los datos necesarios
+        const data = await response.data;
+        console.log("SOY DATA", data);
+        
+        // Procesar los datos de acuerdo a tus necesidades
+        const hourlyData = data.hourly || {};
+        currentTemp = hourlyData.temperature_2m ? hourlyData.temperature_2m[0] : null;
+
+        // Actualizar loading a false después de obtener los datos
+        loading = false;
+
+        return {
+          loading,
+          currentTemp,
+          error: null,
+        };
+      } catch (error) {
+        // Manejar errores de la solicitud
+        loading = false;
+
+        return {
+          loading,
+          currentTemp,
+          error: error.message || 'Error al cargar los datos del clima',
+        };
+      }
+    }
+
+    const probar = await fetchWeatherData();
+    console.log(probar);
+    const { loading, currentTemp, error } = await fetchWeatherData();
+---
+
+    <div class="p-4 bg-blue-500 text-white rounded-lg" hidden={loading}>
+      <p>Cargando...</p>
+    </div>
+    <div class="p-4 bg-blue-500 text-white rounded-lg" hidden={loading || !currentTemp}>
+      <h2 class="text-xl font-bold">Clima</h2>
+      <p>Temperatura actual: {currentTemp}°C</p>
+    </div>
+
+    <div class="p-4 bg-red-500 text-white rounded-lg" hidden={loading || !error}>
+      <p>Error: {error}</p>
+    </div>
